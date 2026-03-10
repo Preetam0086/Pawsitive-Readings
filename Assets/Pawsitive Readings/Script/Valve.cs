@@ -23,48 +23,41 @@ public class Valve : MonoBehaviour
 
     private Material originalMaterial;
     private Renderer rend;
-    private bool playerInside = false;
     private bool isRotating = false;
     private float targetRotation = 0f;
     private float currentRotation = 0f;
     private float liquidLevel = 0f;
     private Quaternion baseRotation;
 
-    void Awake()  // Changed from Start() to Awake()
+
+    public bool IsHighlighted { get; private set; } = false;
+
+    void Awake()
     {
         rend = GetComponentInChildren<Renderer>();
         if (rend != null)
             originalMaterial = rend.material;
 
-        baseRotation = transform.localRotation; // Captured early before puzzle manager Start() fires
+        baseRotation = transform.localRotation;
     }
 
     void Update()
     {
-        if (!playerInside) return;
-        HandleScrollInput();
         SmoothRotate();
     }
 
-    void OnTriggerEnter(Collider other)
+    public void OnRaycastFocused()
     {
-        if (other.CompareTag("Player"))
-        {
-            playerInside = true;
-            Highlight(true);
-        }
+        Highlight(true);
     }
 
-    void OnTriggerExit(Collider other)
+   
+    public void OnRaycastUnfocused()
     {
-        if (other.CompareTag("Player"))
-        {
-            playerInside = false;
-            Highlight(false);
-        }
+        Highlight(false);
     }
 
-    void HandleScrollInput()
+    public void HandleScrollInput()
     {
         if (isRotating) return;
 
@@ -125,6 +118,7 @@ public class Valve : MonoBehaviour
         transform.localRotation = baseRotation;
         liquidLevel = 0f;
         UpdateLiquid();
+        Highlight(false);
     }
 
     void UpdateLiquid()
@@ -135,6 +129,7 @@ public class Valve : MonoBehaviour
 
     void Highlight(bool state)
     {
+        IsHighlighted = state;
         if (rend == null || highlightMaterial == null) return;
 
         if (state)

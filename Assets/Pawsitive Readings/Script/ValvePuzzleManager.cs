@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ValvePuzzleManager : MonoBehaviour
 {
@@ -25,12 +26,119 @@ public class ValvePuzzleManager : MonoBehaviour
     public int blendShapeIndex = 0;
     public float openValue = 100f;
 
-    private bool puzzleSolved = false;
+    [Header("Raycast Settings")]
+    public Camera playerCamera;            
+    public float interactRange = 3f;        
+    public LayerMask valveLayerMask;        
 
-    void Start()  // Stays as Start() — Valves have already run Awake() by now
+    [Header("Crosshair Settings")]
+    public Image crosshairImage;            
+
+    public Collider valveMachineZone;       
+
+    private bool playerInZone = false;
+    private bool puzzleSolved = false;
+    private Valve currentFocusedValve = null;
+
+    void Start()
     {
         ResetPuzzle();
+
+        // Make sure crosshair starts hidden
+        if (crosshairImage != null)
+            crosshairImage.gameObject.SetActive(false);
     }
+
+    void Update()
+    {
+        if (puzzleSolved) return;
+
+        CheckPlayerZone();
+
+        if (playerInZone)
+        {
+            DoRaycast();
+        }
+        else
+        {
+            // Player left zone — clear everything
+            ClearFocus();
+            SetCrosshair(false);
+        }
+    }
+
+
+
+    void CheckPlayerZone()
+    {
+        if (playerCamera == null) return;
+
+        /*
+        if (valveMachineZone != null)
+        {
+            float dist = Vector3.Distance(
+                playerCamera.transform.position,
+                valveMachineZone.ClosestPoint(playerCamera.transform.position)
+            );
+            playerInZone = dist <= interactRange;
+        }
+        */
+    }
+
+
+    public void SetPlayerInZone(bool inZone)
+    {
+        playerInZone = inZone;
+        SetCrosshair(inZone);
+        if (!inZone) ClearFocus();
+    }
+
+
+    void DoRaycast()
+    {
+        if (playerCamera == null) return;
+
+        Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit, interactRange, valveLayerMask))
+        {
+            Valve hitValve = hit.collider.GetComponentInParent<Valve>();
+
+            if (hitValve != null)
+            {
+                // Focus changed
+                if (currentFocusedValve != hitValve)
+                {
+                    ClearFocus();
+                    currentFocusedValve = hitValve;
+                    currentFocusedValve.OnRaycastFocused();
+                }
+
+                currentFocusedValve.HandleScrollInput();
+                return;
+            }
+        }
+
+        ClearFocus();
+    }
+
+    void ClearFocus()
+    {
+        if (currentFocusedValve != null)
+        {
+            currentFocusedValve.OnRaycastUnfocused();
+            currentFocusedValve = null;
+        }
+    }
+
+    void SetCrosshair(bool active)
+    {
+        if (crosshairImage != null)
+            crosshairImage.gameObject.SetActive(active);
+    }
+
+    
 
     public void RegisterValveTurn(int valveID)
     {
@@ -57,17 +165,13 @@ public class ValvePuzzleManager : MonoBehaviour
 
     void UpdateLiquids()
     {
-        if (valve1 != null)
-            valve1.SetLiquidLevel(tankA, maxAmount);
-        if (valve2 != null)
-            valve2.SetLiquidLevel(tankB, maxAmount);
-        if (valve3 != null)
-            valve3.SetLiquidLevel(tankC, maxAmount);
+        if (valve1 != null) valve1.SetLiquidLevel(tankA, maxAmount);
+        if (valve2 != null) valve2.SetLiquidLevel(tankB, maxAmount);
+        if (valve3 != null) valve3.SetLiquidLevel(tankC, maxAmount);
     }
 
     void CheckState()
     {
-        // WIN
         if (tankA == targetA &&
             tankB == targetB &&
             tankC == targetC)
@@ -76,7 +180,6 @@ public class ValvePuzzleManager : MonoBehaviour
             return;
         }
 
-        // OVERFLOW
         if (tankA > maxAmount ||
             tankB > maxAmount ||
             tankC > maxAmount)
@@ -103,7 +206,6 @@ public class ValvePuzzleManager : MonoBehaviour
 
         UpdateLiquids();
 
-        // Safe to call ResetValve() now since Awake() has already set baseRotation
         if (valve1 != null) valve1.ResetValve();
         if (valve2 != null) valve2.ResetValve();
         if (valve3 != null) valve3.ResetValve();

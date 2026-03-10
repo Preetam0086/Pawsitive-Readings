@@ -8,11 +8,12 @@ TagManager:
   - Pick
   - Key
   - hammer
+  - triggerzone
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Valve
   - Water
   - UI
   - 
