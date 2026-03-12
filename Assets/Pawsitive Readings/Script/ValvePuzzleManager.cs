@@ -8,7 +8,7 @@ public class ValvePuzzleManager : MonoBehaviour
     public int tankB;
     public int tankC;
 
-    [Header("Targets")]
+    [Header("Target Values")]
     public int targetA = 5;
     public int targetB = 4;
     public int targetC = 1;
@@ -21,31 +21,30 @@ public class ValvePuzzleManager : MonoBehaviour
     public Valve valve2;
     public Valve valve3;
 
-    [Header("Elevator")]
+    [Header("Elevator Door")]
     public SkinnedMeshRenderer elevatorRenderer;
     public int blendShapeIndex = 0;
     public float openValue = 100f;
 
-    [Header("Raycast")]
-    public Camera playerCamera;
-    public float interactRange = 3f;
-    public LayerMask valveLayerMask;
+    [Header("Raycast Settings")]
+    public Camera playerCamera;            
+    public float interactRange = 3f;        
+    public LayerMask valveLayerMask;        
 
-    [Header("Crosshair")]
-    public Image crosshairImage;
+    [Header("Crosshair Settings")]
+    public Image crosshairImage;            
 
-    [Header("Status Light")]
-    public StatusLight statusLight;
+    public Collider valveMachineZone;       
 
-    bool playerInZone = false;
-    bool puzzleSolved = false;
-
-    Valve currentFocusedValve;
+    private bool playerInZone = false;
+    private bool puzzleSolved = false;
+    private Valve currentFocusedValve = null;
 
     void Start()
     {
         ResetPuzzle();
 
+        // Make sure crosshair starts hidden
         if (crosshairImage != null)
             crosshairImage.gameObject.SetActive(false);
     }
@@ -54,29 +53,52 @@ public class ValvePuzzleManager : MonoBehaviour
     {
         if (puzzleSolved) return;
 
+        CheckPlayerZone();
+
         if (playerInZone)
+        {
             DoRaycast();
+        }
         else
+        {
+            // Player left zone — clear everything
             ClearFocus();
+            SetCrosshair(false);
+        }
     }
+
+
+
+    void CheckPlayerZone()
+    {
+        if (playerCamera == null) return;
+
+        /*
+        if (valveMachineZone != null)
+        {
+            float dist = Vector3.Distance(
+                playerCamera.transform.position,
+                valveMachineZone.ClosestPoint(playerCamera.transform.position)
+            );
+            playerInZone = dist <= interactRange;
+        }
+        */
+    }
+
 
     public void SetPlayerInZone(bool inZone)
     {
         playerInZone = inZone;
-
-        if (crosshairImage != null)
-            crosshairImage.gameObject.SetActive(inZone);
-
-        if (!inZone)
-            ClearFocus();
+        SetCrosshair(inZone);
+        if (!inZone) ClearFocus();
     }
+
 
     void DoRaycast()
     {
-        Ray ray = new Ray(
-            playerCamera.transform.position,
-            playerCamera.transform.forward);
+        if (playerCamera == null) return;
 
+        Ray ray = new Ray(playerCamera.transform.position, playerCamera.transform.forward);
         RaycastHit hit;
 
         if (Physics.Raycast(ray, out hit, interactRange, valveLayerMask))
@@ -85,15 +107,15 @@ public class ValvePuzzleManager : MonoBehaviour
 
             if (hitValve != null)
             {
+                // Focus changed
                 if (currentFocusedValve != hitValve)
                 {
                     ClearFocus();
-
                     currentFocusedValve = hitValve;
                     currentFocusedValve.OnRaycastFocused();
                 }
 
-                currentFocusedValve.HandleKeyInput();
+                currentFocusedValve.HandleScrollInput();
                 return;
             }
         }
@@ -110,6 +132,14 @@ public class ValvePuzzleManager : MonoBehaviour
         }
     }
 
+    void SetCrosshair(bool active)
+    {
+        if (crosshairImage != null)
+            crosshairImage.gameObject.SetActive(active);
+    }
+
+    
+
     public void RegisterValveTurn(int valveID)
     {
         if (puzzleSolved) return;
@@ -117,32 +147,27 @@ public class ValvePuzzleManager : MonoBehaviour
         switch (valveID)
         {
             case 1:
+                tankA += 2;
+                break;
+            case 2:
                 tankA += 1;
                 tankB += 1;
                 break;
-
-            case 2:
-                tankA += 2;
-                break;
-
             case 3:
                 tankB += 1;
                 tankC += 1;
                 break;
         }
 
-        Debug.Log($"Tank Values ? A:{tankA} B:{tankB} C:{tankC}");
-
         UpdateLiquids();
-
         CheckState();
     }
 
     void UpdateLiquids()
     {
-        valve1.SetLiquidLevel(tankA, maxAmount);
-        valve2.SetLiquidLevel(tankB, maxAmount);
-        valve3.SetLiquidLevel(tankC, maxAmount);
+        if (valve1 != null) valve1.SetLiquidLevel(tankA, maxAmount);
+        if (valve2 != null) valve2.SetLiquidLevel(tankB, maxAmount);
+        if (valve3 != null) valve3.SetLiquidLevel(tankC, maxAmount);
     }
 
     void CheckState()
@@ -159,10 +184,7 @@ public class ValvePuzzleManager : MonoBehaviour
             tankB > maxAmount ||
             tankC > maxAmount)
         {
-            Debug.Log("Overflow!");
-
-            statusLight.OnPuzzleFailed();
-
+            Debug.Log("Overflow! Resetting puzzle...");
             ResetPuzzle();
         }
     }
@@ -170,15 +192,10 @@ public class ValvePuzzleManager : MonoBehaviour
     void SolvePuzzle()
     {
         puzzleSolved = true;
-
-        Debug.Log("PUZZLE SOLVED");
-
-        statusLight.OnPuzzleSolved();
+        Debug.Log("Puzzle Solved!");
 
         if (elevatorRenderer != null)
-            elevatorRenderer.SetBlendShapeWeight(
-                blendShapeIndex,
-                openValue);
+            elevatorRenderer.SetBlendShapeWeight(blendShapeIndex, openValue);
     }
 
     void ResetPuzzle()
@@ -189,8 +206,8 @@ public class ValvePuzzleManager : MonoBehaviour
 
         UpdateLiquids();
 
-        valve1.ResetValve();
-        valve2.ResetValve();
-        valve3.ResetValve();
+        if (valve1 != null) valve1.ResetValve();
+        if (valve2 != null) valve2.ResetValve();
+        if (valve3 != null) valve3.ResetValve();
     }
 }
