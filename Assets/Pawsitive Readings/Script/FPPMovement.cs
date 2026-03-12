@@ -11,6 +11,17 @@ public class FPPMovement : MonoBehaviour
     public float mouseSensitivity = 150f;
     public Transform playerCamera;
 
+    [Header("Paw Animation")]
+    public Animator leftPawAnimator;
+    public Animator rightPawAnimator;
+
+    [Header("Head Bob")]
+    public float bobSpeed = 6f;
+    public float bobAmount = 0.05f;
+
+    private float defaultCamY;
+    private float bobTimer;
+
     [Header("Footstep Audio")]
     public AudioSource footstepAudio;
     public float stepInterval = 0.5f;
@@ -28,7 +39,8 @@ public class FPPMovement : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
-        // ?? Force stop audio at start
+        defaultCamY = playerCamera.localPosition.y;
+
         if (footstepAudio != null)
             footstepAudio.Stop();
     }
@@ -37,6 +49,7 @@ public class FPPMovement : MonoBehaviour
     {
         HandleMouseLook();
         HandleMovement();
+        HandleHeadBob();
         HandleFootsteps();
     }
 
@@ -72,6 +85,45 @@ public class FPPMovement : MonoBehaviour
 
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
+
+        bool isMoving = Mathf.Abs(x) > 0.1f || Mathf.Abs(z) > 0.1f;
+
+        if (leftPawAnimator != null)
+            leftPawAnimator.SetBool("isMoving", isMoving);
+
+        if (rightPawAnimator != null)
+            rightPawAnimator.SetBool("isMoving", isMoving);
+    }
+
+    void HandleHeadBob()
+    {
+        float x = Input.GetAxis("Horizontal");
+        float z = Input.GetAxis("Vertical");
+
+        bool isMoving = Mathf.Abs(x) > 0.1f || Mathf.Abs(z) > 0.1f;
+
+        if (controller.isGrounded && isMoving)
+        {
+            bobTimer += Time.deltaTime * bobSpeed;
+
+            float newY = defaultCamY + Mathf.Sin(bobTimer) * bobAmount;
+
+            playerCamera.localPosition = new Vector3(
+                playerCamera.localPosition.x,
+                newY,
+                playerCamera.localPosition.z
+            );
+        }
+        else
+        {
+            bobTimer = 0;
+
+            playerCamera.localPosition = new Vector3(
+                playerCamera.localPosition.x,
+                Mathf.Lerp(playerCamera.localPosition.y, defaultCamY, Time.deltaTime * 5f),
+                playerCamera.localPosition.z
+            );
+        }
     }
 
     void HandleFootsteps()

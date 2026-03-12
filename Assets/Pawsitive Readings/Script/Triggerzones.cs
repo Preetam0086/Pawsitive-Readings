@@ -1,6 +1,5 @@
 using UnityEngine;
 
-
 public class Triggerzones : MonoBehaviour
 {
     [Header("Reference")]

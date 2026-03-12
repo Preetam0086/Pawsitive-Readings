@@ -11,30 +11,30 @@ public class Valve : MonoBehaviour
     [Header("Rotation Settings")]
     public float rotationSpeed = 200f;
 
-    [Header("Highlight Settings")]
+    [Header("Highlight")]
     public Material highlightMaterial;
 
-    [Header("Liquid Settings")]
+    [Header("Liquid")]
     public SkinnedMeshRenderer liquidMesh;
     public int blendShapeIndex = 0;
 
-    [Header("Audio Settings")]
+    [Header("Audio")]
     public AudioSource rotationAudio;
 
-    private Material originalMaterial;
-    private Renderer rend;
-    private bool isRotating = false;
-    private float targetRotation = 0f;
-    private float currentRotation = 0f;
-    private float liquidLevel = 0f;
-    private Quaternion baseRotation;
+    Renderer rend;
+    Material originalMaterial;
 
+    bool isRotating = false;
+    float targetRotation = 0f;
+    float currentRotation = 0f;
 
-    public bool IsHighlighted { get; private set; } = false;
+    float liquidLevel = 0f;
+    Quaternion baseRotation;
 
     void Awake()
     {
         rend = GetComponentInChildren<Renderer>();
+
         if (rend != null)
             originalMaterial = rend.material;
 
@@ -51,22 +51,20 @@ public class Valve : MonoBehaviour
         Highlight(true);
     }
 
-   
     public void OnRaycastUnfocused()
     {
         Highlight(false);
     }
 
-    public void HandleScrollInput()
+    public void HandleKeyInput()
     {
         if (isRotating) return;
 
-        float scroll = Input.GetAxis("Mouse ScrollWheel");
-
-        if (scroll > 0f)
+        // LEFT MOUSE BUTTON
+        if (Input.GetMouseButtonDown(0))
+        {
             AddRotationStep(90f);
-        if (scroll < 0f)
-            AddRotationStep(-90f);
+        }
     }
 
     void AddRotationStep(float angle)
@@ -80,8 +78,7 @@ public class Valve : MonoBehaviour
             rotationAudio.Play();
         }
 
-        if (puzzleManager != null)
-            puzzleManager.RegisterValveTurn(valveID);
+        puzzleManager.RegisterValveTurn(valveID);
 
         isRotating = true;
     }
@@ -96,7 +93,8 @@ public class Valve : MonoBehaviour
             rotationSpeed * Time.deltaTime
         );
 
-        transform.localRotation = baseRotation * Quaternion.Euler(0f, currentRotation, 0f);
+        transform.localRotation =
+            baseRotation * Quaternion.Euler(0f, currentRotation, 0f);
 
         if (Mathf.Abs(currentRotation - targetRotation) < 0.1f)
         {
@@ -108,33 +106,30 @@ public class Valve : MonoBehaviour
     public void SetLiquidLevel(int tankValue, int maxAmount)
     {
         liquidLevel = (float)tankValue / maxAmount * 100f;
-        UpdateLiquid();
-    }
 
-    public void ResetValve()
-    {
-        currentRotation = 0f;
-        targetRotation = 0f;
-        transform.localRotation = baseRotation;
-        liquidLevel = 0f;
-        UpdateLiquid();
-        Highlight(false);
-    }
-
-    void UpdateLiquid()
-    {
         if (liquidMesh != null)
             liquidMesh.SetBlendShapeWeight(blendShapeIndex, liquidLevel);
     }
 
+    public void ResetValve()
+    {
+        currentRotation = 0;
+        targetRotation = 0;
+
+        transform.localRotation = baseRotation;
+
+        liquidLevel = 0;
+
+        if (liquidMesh != null)
+            liquidMesh.SetBlendShapeWeight(blendShapeIndex, liquidLevel);
+
+        Highlight(false);
+    }
+
     void Highlight(bool state)
     {
-        IsHighlighted = state;
         if (rend == null || highlightMaterial == null) return;
 
-        if (state)
-            rend.material = highlightMaterial;
-        else
-            rend.material = originalMaterial;
+        rend.material = state ? highlightMaterial : originalMaterial;
     }
 }
