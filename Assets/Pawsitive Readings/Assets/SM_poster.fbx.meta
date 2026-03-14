@@ -3,7 +3,17 @@ guid: bad94299739ec154689205cc621b4137
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Poster_Back
+    second: {fileID: 2100000, guid: 9adebd28e5213cd4db7f1625d141a346, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Poster_Front
+    second: {fileID: 2100000, guid: 55da8627cfba73240aff2dc7accde332, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

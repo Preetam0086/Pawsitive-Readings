@@ -1,9 +1,19 @@
 fileFormatVersion: 2
-guid: 0425388f7d014bd4ea075a99d79fbc9d
+guid: 1067f9596e78a44499d415629e036357
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Hammer_End
+    second: {fileID: 2100000, guid: 78055a7e1d20853449f3dd34c7f257c0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Hammer_Handle
+    second: {fileID: 2100000, guid: 70278bb4755758a4c968c9625970565a, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

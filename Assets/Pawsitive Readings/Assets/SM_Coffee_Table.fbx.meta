@@ -3,7 +3,17 @@ guid: 8db15c18e3fe53b48ab40154f4d1b6b6
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Coffee_Table
+    second: {fileID: 2100000, guid: 1b767ce27445f5b4faa4cff1dc31af35, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Drawers
+    second: {fileID: 2100000, guid: 00c70791808b2e742ab61e91abd1117b, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 3ab59ef70735c8a4cb85f7ef0b256333
+guid: 1d60d44f16f02bf4386a4966c6620edf
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
@@ -7,13 +7,8 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: Frame_and_Base
-    second: {fileID: 2100000, guid: a0502bfc90c8ba44a9f6ab4c18af60dc, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Light_Casing
-    second: {fileID: 2100000, guid: 2b2e03cf091a53c4ba53a1aeb5c1a806, type: 2}
+      name: UV_Grid
+    second: {fileID: 2100000, guid: c1cac7d70b50d314b8f184f1c924d3e4, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
